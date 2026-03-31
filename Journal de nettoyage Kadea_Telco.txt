@@ -1,0 +1,85 @@
+Journal pour Capstone : Kadea Telco
+
+En tant que Data Analyst, je suis appelée à traiter un problème que rencontre mon entreprise Kadea Telco, qui est confrontée à une concurrence féroce et une instabilité réseau pour prendre une décision.
+Le DG a lancé une campagne de rétention par rapport aux clients qui partent de l’entreprise.
+Il est question de savoir combien de clients avons-nous perdus?
+Combien avons-nous également perdu en termes d’argent?
+J’ai reçu des fichiers importants qui sont de base des données des départements suivants :
+Le commercial (Fichier clients);
+Le département réseau (Fichiers Log, un journal sur les antennes réseau);
+et le département technique (Fichiers registres).
+Au total j’ai reçu de ces trois départements 53 fichiers Excel.
+Après avoir reçu ces fichiers, j’ai pris le temps de les télécharger, classer dans un dossier que j’ai nommé “PROJET FIL ROUGE MODULE 1” puis créer un dossier pour chaque fichier : 
+Dossier Churn_Clients pour tous les fichiers Excel envoyés par le département Commercial;
+Dossier Log_Réseau pour tous les fichiers Excel envoyés par le département Réseau;
+Puis un dossier Registre_Maintenance pour tous les fichiers Excel envoyés par le département Technique qui concernent les antennes.
+
+J’ai pris le temps d’ouvrir chaque fichier excel avec soin dans le but de comprendre le type d’information qui s’y trouve et j’ai découvert que les fichiers nommés “Clients_Churn_51, Log_Reseau_51 et Registre_Maintenance_51” ne disposent pas des informations dont j’ai besoin pour traiter le problème dans lequel on est confronté et j’ai pris la décision de les rendre aux départements respectifs.
+Et pour bien travailler j’ai créé un dossier PROJET FIL ROUGE MODULE1 et dans ce dossier j’ai créé trois autres dossiers pour ces fichiers excels que j’ai reçu de ces trois différents départements.
+J’ai créé un dossier Client_Churn, Logs_Réseau et Registre_Maintenance.
+Puis j’ai copié et collé ces dossiers au même endroit.
+Dans ce dossier PROJET FIL ROUGE MODULE1, j’ai créé un dossier que j’ai nommé “Base de Données Kadea_Telco” et dans cette base de données j’ai fait un clique droit et créée un classeur excel que j’ai nommé “2026_03_31_CAMPAGNE_RETENTION_KADEA_TELCO”. Après l’avoir nommé je l’ai ouvert et commencé à faire la fusion de mes trois types des fichiers reçus en cliquant sur le ruban “Données” pour accéder à l’outil “POWER QUERY”.
+
+ Procédure de la fusion, nettoyage et modification
+
+I.1. Logs_Réseau
+
+J’ai eu au début 1084 lignes soit 1083 antennes enregistrées dans le journal.
+Comme constat ::
+5 (Cell_Id) manquants donc antennes non connues;
+5 doublants qui sont : (ANT-0109, ANT-0288; ANT-0866, ANT-0912;ANT-0951);
+Deux cellules vides dans la colonne “Date”
+Et à la fin, je me suis retrouvé avec 1069 antennes après nettoyage sur excel.
+
+I.2. Registre_Maintenance
+
+J’ai eu au début 500 antennes enregistrées par la maintenance.
+Comme constat ::
+Deux vides dans la colonne “Province” 
+Et par rapport au format dans la colonne longitude et latitude, nous avions des nombres décimaux des 6 caractères et mois des 6 caractères après la virgule donc nous avons fait le clean en filtrant ces nombres avec moins des 6 caractères après la virgule. 41 antennes pour la latitude et 40 antennes pour la longitude.
+Finalement, il m’est resté 417 antennes après nettoyage sur excel.
+
+I.3. Client_Churn
+
+Comme constat, lorsque j’ai ramené tous les fichiers excel “Churn”.
+J’ai remarqué ::
+2 anciennetés négatives (-53 et -36);
+4 erreurs dans la colonne facture_mensuelle (il y avait des montants qui étaient en euro et Power Query l’a considéré comme erreur ) on comprend que ça n’a pas le même format que les autres); qui sont : 58,74€; 76,95€;90,99€ et 97,5€.
+Après analyse, toujours pour la colonne facture_mensuelle, le format est en décimal et parmi ces nombres décimaux il y avait ceux qui n’avaient pas le même format que les autres et il y avait 75 lignes avec cette erreur de format.
+Donc au début, j’avais un fichier des 750 clients après nettoyage avec Excel je me suis retrouvée avec “673 clients”
+J’ai copié et collé ce fichier sur une autre feuille pour faire certaines modifications pour une bonne manipulation.
+Pour ancienneté en mois, j’ai fractionné par 12 pour avoir l’ancienneté en année donc j’ai eu une colonne de plus; 
+Durée cumulée panne qui était en minute je l’ai fractionné aussi en heure donc par 60, j’ai eu une colonne de plus;
+J’ai ajouté une colonne pour déterminer le type de client entre B2B et B2C;
+Une colonne de plus pour la remise de rétention : SI(ET([@[Duree_Cumulee_Panne_Heure]]>12;[@[Anciennete_Annee]]>5);70%;SI(OU(ET([@[Duree_Cumulee_Panne_Heure]]>=4;[@[Duree_Cumulee_Panne_Heure]]<=12);ET([@[Duree_Cumulee_Panne_Heure]]<5;[@[Type_Forfait]]="Premium"));45%;SI([@[Type_Client]]="B2B";10%;0)))
+Une autre colonne pour le montant de remise, j’ai fait “Remise*Facture_mensuelle” pour connaître le montant qu’on remettra à nos clients pour pouvoir les maintenir.
+
+Joindre fichier Logs_Réseau et Registre_Maintenance
+
+Pour joindre ces deux fichiers sur excel, j’ai copié et collé la feuille “Logs_Réseau” sur une autre feuille pour bien faire ma manipulation.
+Les deux fichiers ont une information commune qui est “CELL_ID” de l’antenne, donc cette colonne nous a servi de clé primaire pour lier ces deux fichiers et en faire une seule feuille que j’ai appelée “LOGS_REGISTRE”. 
+Grâce à une fonction connue “RECHERCHEV” j’ai rapatrié les informations du Registre de Maintenance vers Logs_Réseau.
+Ensuite j’ai fait la gestion des erreurs de recherche “#N/A” en utilisant une fonction “SIERREUR” pour laisser “VIDE” partout où il y avait cette erreur, puis j’ai encore copié LOGS_REGISTRE pour le collé sur une autre feuille en le nommant cette fois là de “MASTER_LOGS_REGISTRE” c’est là maintenant que j’ai filtré “LES VIDES” pour ensuite faire mes trois TCD (Tableaux Croisés Dynamiques) qui sont ::
+
+TCD nommé “TCD somme_totale” pour connaître la somme totale des heures d’insdiponibilité par région  qui est “NORD-KIVU”
+TCD nommé “TCD Sous_categorisation” pour connaître la sous-catégorisation par technologie;
+TCD nommé “TCD moyenne_abonnes_impactes” pour le nombre moyenne d’abonnés impactés par région.
+Il y a un point que je dois préciser que j’ai ajouté des colonnes pour aboutir à ce résultat, j’ai fait l’ajout des colonnes entre autre ::
+Où il y avait de la durée panne en minute : j’ai fractionné par 60 pour avoir la durée en heure tout en gardant la colonne de la durée en minute donc j’ai eu une colonne de plus pour la durée en heure;
+J’ai séparé la date et l’heure de la panne qui étaient ensemble, donc chacune a maintenant sa colonne.
+
+IV. TCD avec le fichier Clients_Churn
+
+TCD pour connaître les clients retenus;
+TCD pour les clients non-retenus;
+TCD pour la somme dépensée par l’entreprise.
+
+V. Joindre Fichier Master Logs_Registre avec Fichier Master Client_Churn
+
+J’ai constaté qu’en joignant ces deux fichiers, on ne me prend que les informations d’un client par province ce qui a fait même que je fasse le TCD de la situation des clients avant de joindre le fichier client et le fichier Master Logs_Registre, pour connaître les clients retenus, non retenus et la somme dépensée par l’entreprise.
+Et avec le Master Logs_Registre j’ai fait le TCD de la somme_totale des heures d'indisponibilité, la sous-catégoristation par technologie et la moyenne d’abonnés impactés par région.
+
+VI. DASHBOARD  
+
+Pour faire mon tableau de bord, il m’a fallu charger mon Master_Logs_Registre et Master_Clients_Churn.
+
